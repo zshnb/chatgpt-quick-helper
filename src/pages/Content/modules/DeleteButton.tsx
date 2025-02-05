@@ -1,11 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-export default function DeleteButton() {
+export default function DeleteButton({ href }: { href: string }) {
+  const [jwt, setJwt] = useState('');
+
+  function getConversationId() {
+    const array = href.split('/');
+    return array[array.length - 1];
+  }
+
+  useEffect(() => {
+    chrome.storage.local.get(['jwt', 'conversationId']).then((result) => {
+      console.log(result);
+      setJwt(result.jwt);
+    });
+  }, []);
+
+  async function handleDelete(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    const response = await fetch(
+      `https://chatgpt.com/backend-api/conversation/${getConversationId()}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: jwt,
+          'user-agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+        },
+        body: JSON.stringify({ is_visible: false }),
+      }
+    );
+    if (response.ok) {
+      console.log('delete success');
+    }
+  }
+
   return (
     <button
       style={{
-        color: '#f93a37'
+        color: '#f93a37',
       }}
+      onClick={handleDelete}
     >
       <svg
         width="24"
