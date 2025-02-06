@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-export default function DeleteButton({ href }: { href: string }) {
+export default function DeleteButton({ href, element }: { href: string, element: Element }) {
   const [jwt, setJwt] = useState('');
 
   function getConversationId() {
@@ -9,7 +9,7 @@ export default function DeleteButton({ href }: { href: string }) {
   }
 
   useEffect(() => {
-    chrome.storage.local.get(['jwt', 'conversationId']).then((result) => {
+    chrome.storage.local.get(['jwt']).then((result) => {
       console.log(result);
       setJwt(result.jwt);
     });
@@ -32,6 +32,7 @@ export default function DeleteButton({ href }: { href: string }) {
     );
     if (response.ok) {
       console.log('delete success');
+      element.parentElement?.remove()
     }
   }
 

@@ -16,7 +16,7 @@ const observer = new MutationObserver((mutations, obs) => {
         reactRootEl.setAttribute('id', 'reactRoot')
         element.appendChild(reactRootEl)
         const reactRoot = createRoot(reactRootEl)
-        reactRoot.render(<DeleteButton href={href}/>)
+        reactRoot.render(<DeleteButton href={href} element={element}/>)
       })
       element.addEventListener('mouseleave', () => {
         document.getElementById('reactRoot').remove()

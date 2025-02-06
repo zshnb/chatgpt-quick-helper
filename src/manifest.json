@@ -1,14 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT helper（网页助手）",
-  "description": "A chrome extension boilerplate built with React 17, Webpack 5, and Webpack Dev Server 4",
+  "version": "0.0.1",
+  "name": "ChatGPT 增强器",
+  "description": "简洁高效的 ChatGPT 增强插件，支持快速删除对话，让你的 ChatGPT 体验更流畅",
   "options_page": "options.html",
   "background": { "service_worker": "background.bundle.js" },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "icon-34.png"
+    "default_icon": "icon-16.png"
   },
   "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
     "128": "icon-128.png"
   },
   "content_scripts": [

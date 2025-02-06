@@ -1,6 +1,6 @@
 {
   "name": "chatgpt-quick-helper",
-  "version": "5.0.4",
+  "version": "0.0.1",
   "description": "A chrome extension boilerplate built with React 18, Webpack 5, and Webpack Dev Server 4",
   "repository": {
     "type": "git",
