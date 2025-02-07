@@ -32,5 +32,5 @@
   "host_permissions": [
     "https://chatgpt.com/*"
   ],
-  "permissions": ["webRequest", "storage"]
+  "permissions": ["webRequest", "storage", "downloads"]
 }

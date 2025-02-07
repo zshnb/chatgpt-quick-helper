@@ -10,7 +10,6 @@ export default function DeleteButton({ href, element }: { href: string, element:
 
   useEffect(() => {
     chrome.storage.local.get(['jwt']).then((result) => {
-      console.log(result);
       setJwt(result.jwt);
     });
   }, []);
