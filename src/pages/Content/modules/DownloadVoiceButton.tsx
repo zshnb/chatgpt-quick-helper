@@ -1,7 +1,7 @@
 import {type MouseEvent, useState} from "react";
 import {Download} from "lucide-react";
 import React from 'react';
-import Spin from './Spin';
+import Spin from '../../../components/spin/Spin';
 
 export default function DownloadVoiceButton({messageId}: {messageId: string}) {
   const [loading, setLoading] = useState<boolean>(false);

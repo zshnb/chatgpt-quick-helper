@@ -31,8 +31,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('received request');
   if (request.type === 'download') {
     handleDownload({ messageId: request.messageId, sendResponse });
-  } else if (request.type === 'downloadAll') {
-
+  } else if (request.type === 'downloadAllVoices') {
+    handleDownloadAll({sendResponse});
   }
   return true
 })
@@ -57,12 +57,12 @@ async function handleDownload({messageId, sendResponse}) {
       filename: `voice_${messageId}.aac`
     });
     sendResponse({
-      ok: result
+      ok: true
     })
   }
 }
 
-async function handleDownloadAll({messageId}) {
+async function handleDownloadAll({sendResponse}) {
   const result = await chrome.storage.local.get(['jwt', 'conversationId', 'voice'])
   const conversationId = result.conversationId
   const jwt = result.jwt
@@ -114,4 +114,7 @@ async function handleDownloadAll({messageId}) {
     url: downloadZipBlob,
     filename: zipFileName
   });
+  sendResponse({
+    ok: true,
+  })
 }
