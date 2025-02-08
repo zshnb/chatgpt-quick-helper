@@ -1,7 +1,7 @@
 {
   "name": "chatgpt-quick-helper",
   "version": "0.0.1",
-  "description": "A chrome extension boilerplate built with React 18, Webpack 5, and Webpack Dev Server 4",
+  "description": "A Chrome extension provide helpful action(delete conversation, download voice)",
   "repository": {
     "type": "git",
     "url": ""
