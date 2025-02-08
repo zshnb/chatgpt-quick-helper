@@ -16,6 +16,7 @@ export default function DeleteButton({ href, element }: { href: string, element:
 
   async function handleDelete(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault()
+    element.parentElement?.remove()
     const response = await fetch(
       `https://chatgpt.com/backend-api/conversation/${getConversationId()}`,
       {
@@ -31,7 +32,6 @@ export default function DeleteButton({ href, element }: { href: string, element:
     );
     if (response.ok) {
       console.log('delete success');
-      element.parentElement?.remove()
     }
   }
 
