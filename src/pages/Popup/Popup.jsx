@@ -40,7 +40,13 @@ const Popup = () => {
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs && tabs.length > 0) {
-        if (tabs[0].url === undefined) {
+        const tab = tabs[0];
+        if (tab.url) {
+          const url = new URL(tab.url);
+          if (url.hostname !== 'chatgpt.com') {
+            setValidPage(false)
+          }
+        } else {
           setValidPage(false)
         }
       }
