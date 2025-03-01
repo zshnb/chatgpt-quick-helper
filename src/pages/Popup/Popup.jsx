@@ -27,11 +27,8 @@ const Popup = () => {
 
   useEffect(() => {
     chrome.storage.local.get(['voice']).then(async (res) => {
-      if (!res) {
-        await chrome.storage.local.set({ voice: voices[0] });
-        setVoice(voices[0]);
-      } else {
-        setVoice(res.voice);
+      if (!res.voice) {
+        await chrome.storage.local.set({ voice });
       }
     });
   }, []);
@@ -59,7 +56,7 @@ const Popup = () => {
           <form className={'flex flex-col gap-y-2 relative'}>
             <h1 className={'text-center text-xl'}>ChatGPT音频下载器</h1>
             <Select
-              defaultValue={{label: voices[0], value: voices[0]}}
+              defaultValue={{label: voice, value: voice}}
               placeholder="选择声音"
               className="max-w-xs"
               options={voices.map((it) => {

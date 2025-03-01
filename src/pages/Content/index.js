@@ -36,7 +36,7 @@ const observer = new MutationObserver((mutations, obs) => {
       addedEventMessages.add(messageId);
       const article = message.closest('article');
       if (!article.querySelector('#downloadVoiceBtnRoot')) {
-        article.addEventListener('pointerenter', () => {
+        article.addEventListener('mouseenter', () => {
           const toolbar =
             message.parentElement?.nextElementSibling?.childNodes[0]?.childNodes[0];
           if (toolbar) {
@@ -51,7 +51,7 @@ const observer = new MutationObserver((mutations, obs) => {
             }
           }
         });
-        article.addEventListener('pointerleave', () => {
+        article.addEventListener('mouseleave', () => {
           document.querySelectorAll('#downloadVoiceBtnRoot').forEach(it => it.remove())
         });
       }
