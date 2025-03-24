@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "version": "0.0.2",
-  "name": "ChatGPT 增强器",
-  "description": "简洁高效的 ChatGPT 增强插件，支持快速删除对话，让你的 ChatGPT 体验更流畅",
+  "version": "0.0.3",
+  "name": "ChatGPT增强工具 - 快速删除对话，一键下载对话内消息语音",
+  "description": "ChatGPT增强工具 - 快速删除对话，一键下载对话内消息语音",
   "options_page": "options.html",
   "background": { "service_worker": "background.bundle.js" },
   "action": {
