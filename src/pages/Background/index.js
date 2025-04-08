@@ -1,7 +1,9 @@
 import { convertBlobToDownloadable, downloadVoice } from '../../../utils/downloadUtil';
 import JSZip from 'jszip';
+import { getMessageIds } from '../../util';
 
 console.log('running');
+const conversationWithBlobs = {}
 chrome.webRequest.onSendHeaders.addListener(async (details) => {
   const headers = details.requestHeaders
   const auth = headers.find(it => it.name === 'Authorization')
@@ -28,11 +30,13 @@ chrome.webRequest.onCompleted.addListener(async (details) => {
 }, {urls: ['https://chatgpt.com/backend-api/conversation/*']})
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('received request');
+  console.log('received request', request);
   if (request.type === 'download') {
     handleDownload({ messageId: request.messageId, sendResponse });
   } else if (request.type === 'downloadAllVoices') {
     handleDownloadAll({sendResponse});
+  } else if (request.type === 'zipAudios') {
+    handleZipAudios({conversationId: request.conversationId, sendResponse});
   }
   return true
 })
@@ -76,16 +80,18 @@ async function handleDownloadAll({sendResponse}) {
   })
   if (!response.ok) {
     console.log('get conversation error')
+    sendResponse({
+      ok: false,
+    })
   }
 
   const conversationResponse = (await response.json())
-  const messageIds = Object.values(conversationResponse.mapping).filter(it => {
-    return it.message !== null && it.message.author.role === 'assistant'
-  }).map(it => it.message.id)
-
-  const zip = new JSZip();
-  const folderName = conversationResponse.title;
-  const folder = zip.folder(folderName);
+  const conversationInfo = {
+    title: conversationResponse.title,
+    blobs: []
+  }
+  conversationWithBlobs[conversationId] = conversationInfo
+  const messageIds = await getMessageIds(conversationId, jwt)
 
   const promises = messageIds.map(async (it, index) => {
     try {
@@ -95,12 +101,38 @@ async function handleDownloadAll({sendResponse}) {
         jwt,
         voice
       });
-      folder.file(`${index}_${it}.aac`, blob, {binary: true})
-      return ''
-    } catch (err) {}
+      conversationInfo.blobs.push({
+        blob,
+        index,
+        status: 'finished'
+      })
+    } catch (err) {
+      conversationInfo.blobs.push({
+        index,
+        status: 'error',
+      })
+    }
   })
 
   await Promise.all(promises)
+  sendResponse({
+    ok: true,
+    messageItems: conversationInfo.blobs.map(it => ({
+      id: it.index + 1,
+      status: it.status
+    })).sort((a, b) => a.id - b.id)
+  })
+}
+
+async function handleZipAudios({conversationId, sendResponse}) {
+  const title = conversationWithBlobs[conversationId].title
+  const zip = new JSZip();
+  const folder = zip.folder(title);
+
+  const blobs = conversationWithBlobs[conversationId].blobs
+  for (let i = 0; i < blobs.length; i++) {
+    folder.file(`${i + 1}.aac`, blobs[i].blob, {binary: true})
+  }
 
   const zipBlob = await zip.generateAsync({ type: "blob" });
 
@@ -108,7 +140,7 @@ async function handleDownloadAll({sendResponse}) {
     blob: zipBlob,
     type: 'application/zip'
   })
-  const zipFileName =`${conversationResponse.title}.zip`
+  const zipFileName =`${title}.zip`
 
   await chrome.downloads.download({
     url: downloadZipBlob,
