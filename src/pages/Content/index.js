@@ -38,7 +38,7 @@ const observer = new MutationObserver((mutations, obs) => {
       if (!article.querySelector('#downloadVoiceBtnRoot')) {
         article.addEventListener('mouseenter', () => {
           const toolbar =
-            message.parentElement?.nextElementSibling?.childNodes[0]?.childNodes[0];
+            message.parentElement?.nextElementSibling?.childNodes[0]
           if (toolbar) {
             if (document.querySelector('#downloadVoiceBtnRoot') === null) {
               const reactRootEl = document.createElement('div');
