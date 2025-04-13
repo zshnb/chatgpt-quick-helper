@@ -1,6 +1,6 @@
 {
   "name": "chatgpt-quick-helper",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A Chrome extension provide helpful action(delete conversation, download voice)",
   "repository": {
     "type": "git",

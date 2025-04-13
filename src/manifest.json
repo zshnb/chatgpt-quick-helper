@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "name": "ChatGPT增强工具 - 快速删除对话，一键下载对话内消息语音",
   "description": "ChatGPT增强工具 - 快速删除对话，一键下载对话内消息语音",
   "options_page": "options.html",
