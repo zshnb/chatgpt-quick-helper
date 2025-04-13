@@ -2,14 +2,31 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Select from 'react-select';
 import Spin from '../../components/spin/Spin';
 import Mask from '../../components/mask/Mask';
-import { MessageItem } from '../../types';
+import { MessageItem, Voice } from '../../types';
 import { getMessageIds } from '../../util';
 import LoadingButton from '../../components/button/LoadingButton';
 
 const Popup = () => {
-  const voices = ['breeze', 'juniper', 'ember', 'cove'];
-  const [voice, setVoice] = useState('breeze');
-  const [loading, setLoading] = useState(true);
+  const voices: Voice[] = [
+    { display: 'Sol', value: 'glimmer' },
+    {
+      display: 'Spruce',
+      value: 'orbit',
+    },
+    { display: 'Maple', value: 'maple' },
+    { display: 'Vale', value: 'vale' },
+    { display: 'Arbor', value: 'fathom' },
+    {
+      display: 'Breeze',
+      value: 'breeze',
+    },
+    { display: 'Juniper', value: 'juniper' },
+    { display: 'Ember', value: 'ember' },
+    { display: 'Cove', value: 'cove' },
+    { display: 'Monday', value: 'shade' },
+  ];
+  const [voice, setVoice] = useState({display: 'Breeze', value: 'breeze'});
+  const [loading, setLoading] = useState(false);
   const [messageItems, setMessageItems] = useState<MessageItem[]>([]);
   const [messageIds, setMessageIds] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -29,7 +46,6 @@ const Popup = () => {
         type: 'downloadAllVoices',
       });
       if (response.ok) {
-        response.messageItems[1].status = 'error';
         setMessageItems(response.messageItems);
         console.log('download voice success');
       } else {
@@ -72,10 +88,10 @@ const Popup = () => {
       messageId,
       index,
     });
-    const item = messageItems.find(it => it.index === index)
+    const item = messageItems.find((it) => it.index === index);
     if (item) {
-      item.status = 'finished'
-      setMessageItems([...messageItems])
+      item.status = 'finished';
+      setMessageItems([...messageItems]);
     }
     if (response.ok) {
       console.log('re download audio success');
@@ -88,7 +104,7 @@ const Popup = () => {
   useEffect(() => {
     chrome.storage.local.get(['voice']).then(async (res) => {
       if (!res.voice) {
-        await chrome.storage.local.set({ voice });
+        await chrome.storage.local.set({ voice: voice.value });
       }
     });
   }, []);
@@ -139,13 +155,13 @@ const Popup = () => {
         <form className={'flex flex-col gap-y-2 relative'}>
           <h1 className={'text-center text-xl'}>ChatGPT音频下载器</h1>
           <Select
-            defaultValue={{ label: voice, value: voice }}
+            defaultValue={{ label: voice.display, value: voice.value }}
             placeholder="选择声音"
             className="max-w-xs"
             options={voices.map((it) => {
               return {
-                value: it,
-                label: it,
+                value: it.value,
+                label: it.display,
               };
             })}
             onChange={async (e: any) => {
@@ -154,7 +170,7 @@ const Popup = () => {
             }}
           ></Select>
           <button
-            className={`text-white border-none rounded-sm px-0.5 py-2 bg-[#171717] w-[100px] self-center cursor-pointer flex justify-around`}
+            className={`text-white border-none rounded-sm px-0.5 py-2 bg-[#171717] w-[100px] self-center cursor-pointer flex justify-center gap-x-2`}
             onClick={zipAudios ? handleZipAudios : handleDownloadAllVoices}
             disabled={loading}
           >

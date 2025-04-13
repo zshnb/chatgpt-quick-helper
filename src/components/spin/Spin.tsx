@@ -3,8 +3,8 @@ import './spin.css'
 
 export default function Spin() {
   return (
-    <button className='loading-btn'>
+    <div className='loading-btn'>
       <span className="spinner"></span>
-    </button>
+    </div>
   )
 }
