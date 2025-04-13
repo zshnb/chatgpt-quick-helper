@@ -4,19 +4,23 @@ import Spin from '../../components/spin/Spin';
 import Mask from '../../components/mask/Mask';
 import { MessageItem } from '../../types';
 import { getMessageIds } from '../../util';
+import LoadingButton from '../../components/button/LoadingButton';
 
 const Popup = () => {
   const voices = ['breeze', 'juniper', 'ember', 'cove'];
   const [voice, setVoice] = useState('breeze');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [messageItems, setMessageItems] = useState<MessageItem[]>([]);
   const [messageIds, setMessageIds] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
-  const conversationIdRef = useRef()
+  const conversationIdRef = useRef();
 
   const zipAudios = useMemo(() => {
-    return messageItems.filter(it => it.status === 'finished').length === messageIds.length
-  }, [messageItems, messageIds])
+    return (
+      messageItems.filter((it) => it.status === 'finished').length ===
+      messageIds.length
+    );
+  }, [messageItems, messageIds]);
 
   async function handleDownloadAllVoices() {
     setLoading(true);
@@ -25,7 +29,7 @@ const Popup = () => {
         type: 'downloadAllVoices',
       });
       if (response.ok) {
-        console.log(response);
+        response.messageItems[1].status = 'error';
         setMessageItems(response.messageItems);
         console.log('download voice success');
       } else {
@@ -42,16 +46,42 @@ const Popup = () => {
     try {
       const response = await chrome.runtime.sendMessage({
         type: 'zipAudios',
-        conversationId: conversationIdRef.current
+        conversationId: conversationIdRef.current,
       });
       if (response.ok) {
-        console.log('zip voice success');
+        console.log('zip audios success');
       } else {
         setError('打包失败，请稍后重试');
-        console.log('zip voice error');
+        console.log('zip audios error');
       }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleReDownloadAudio({
+    messageId,
+    index,
+  }: {
+    messageId: string;
+    index: number;
+  }) {
+    const response = await chrome.runtime.sendMessage({
+      type: 'reDownloadAudio',
+      conversationId: conversationIdRef.current,
+      messageId,
+      index,
+    });
+    const item = messageItems.find(it => it.index === index)
+    if (item) {
+      item.status = 'finished'
+      setMessageItems([...messageItems])
+    }
+    if (response.ok) {
+      console.log('re download audio success');
+    } else {
+      setError('下载失败，请稍后重试');
+      console.log('re download error');
     }
   }
 
@@ -67,17 +97,20 @@ const Popup = () => {
     async function getMessages() {
       const storage = await chrome.storage.local.get(['conversationId', 'jwt']);
       const conversationId = storage.conversationId;
-      conversationIdRef.current = conversationId
+      conversationIdRef.current = conversationId;
       const jwt = storage.jwt;
       if (!storage.conversationId || !storage.jwt) {
         return;
       }
       const messageIds = await getMessageIds(conversationId, jwt);
-      setMessageIds(messageIds)
-      const messageItems: MessageItem[] = messageIds.map((it: any, index) => ({
-        id: (index + 1).toString(),
-        status: 'pending',
-      }));
+      setMessageIds(messageIds);
+      const messageItems: MessageItem[] = messageIds.map(
+        (it: string, index) => ({
+          id: it,
+          index,
+          status: 'pending',
+        })
+      );
       setMessageItems(messageItems);
     }
 
@@ -138,14 +171,33 @@ const Popup = () => {
             </li>
             {messageItems.map((it) => (
               <li className="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                <span className="text-gray-700">{it.id}</span>
-                <span
-                  className={`text-sm font-medium ${
-                    it.status === 'pending' ? 'text-gray-500' : it.status === 'finished' ? 'text-green-500' : 'text-red-500'
-                  }`}
-                >
-                  {it.status === 'pending' ? '未完成' : '已完成'}
-                </span>
+                <span className="text-gray-700">{it.index + 1}</span>
+                {it.status === 'error' ? (
+                  <LoadingButton
+                    className={`text-slate-950 border-none rounded-sm px-0.5 py-1 bg-zinc-50 w-[80px] self-center cursor-pointer flex justify-around`}
+                    handleEvent={() =>
+                      handleReDownloadAudio({
+                        messageId: it.id,
+                        index: it.index,
+                      })
+                    }
+                    loadingText={'下载中'}
+                  >
+                    <span>重新下载</span>
+                  </LoadingButton>
+                ) : (
+                  <span
+                    className={`text-sm font-medium ${
+                      it.status === 'pending'
+                        ? 'text-gray-500'
+                        : it.status === 'finished'
+                        ? 'text-green-500'
+                        : 'text-red-500'
+                    }`}
+                  >
+                    {it.status === 'pending' ? '未完成' : '已完成'}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

@@ -1,4 +1,5 @@
 export type MessageItem = {
   id: string
-  status: 'pending' | 'finished'
+  index: number
+  status: 'pending' | 'finished' | 'error'
 }

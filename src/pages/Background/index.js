@@ -37,6 +37,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleDownloadAll({sendResponse});
   } else if (request.type === 'zipAudios') {
     handleZipAudios({conversationId: request.conversationId, sendResponse});
+  } else if (request.type === 'reDownloadAudio') {
+    handleReDownloadInPopUp({...request, sendResponse});
   }
   return true
 })
@@ -66,6 +68,30 @@ async function handleDownload({messageId, sendResponse}) {
   }
 }
 
+async function handleReDownloadInPopUp({conversationId, messageId, index, sendResponse}) {
+  const conversationInfo = conversationWithBlobs[conversationId]
+  if (!conversationInfo) {
+    console.log(`no conversation[${conversationId} info, skip re-download message[${messageId}]`);
+    return
+  }
+  const result = await chrome.storage.local.get(['jwt'])
+  const jwt = result.jwt
+  const voice = conversationInfo.voice
+  try {
+    const blob = await downloadVoice({messageId, conversationId, jwt, voice})
+    const blobInfo = conversationInfo.blobs.find(it => it.index === index)
+    blobInfo.blob = blob
+    blobInfo.status = 'finished'
+    sendResponse({
+      ok: true
+    })
+  } catch (e) {
+    sendResponse({
+      ok: false
+    })
+  }
+}
+
 async function handleDownloadAll({sendResponse}) {
   const result = await chrome.storage.local.get(['jwt', 'conversationId', 'voice'])
   const conversationId = result.conversationId
@@ -88,6 +114,7 @@ async function handleDownloadAll({sendResponse}) {
   const conversationResponse = (await response.json())
   const conversationInfo = {
     title: conversationResponse.title,
+    voice,
     blobs: []
   }
   conversationWithBlobs[conversationId] = conversationInfo
@@ -102,6 +129,7 @@ async function handleDownloadAll({sendResponse}) {
         voice
       });
       conversationInfo.blobs.push({
+        messageId: it,
         blob,
         index,
         status: 'finished'
@@ -109,16 +137,20 @@ async function handleDownloadAll({sendResponse}) {
     } catch (err) {
       conversationInfo.blobs.push({
         index,
+        messageId: it,
         status: 'error',
       })
     }
   })
 
   await Promise.all(promises)
+  console.log('conversationInfo', conversationInfo);
+  conversationInfo.blobs = conversationInfo.blobs.sort((a, b) => a.index - b.index)
   sendResponse({
     ok: true,
-    messageItems: conversationInfo.blobs.map(it => ({
-      id: it.index + 1,
+    messageItems: conversationInfo.blobs.map((it, index) => ({
+      id: it.messageId,
+      index,
       status: it.status
     })).sort((a, b) => a.id - b.id)
   })
