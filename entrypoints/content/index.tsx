@@ -1,0 +1,65 @@
+import {createRoot} from "react-dom/client";
+import DeleteButton from './DeleteButton.tsx'
+import DownloadVoiceButton from "./DownloadVoiceButton.tsx";
+
+export default defineContentScript({
+  matches: ['https://chatgpt.com/*'],
+  main() {
+    console.log('Hello content.');
+    const addedEventConversations = new Set();
+    const addedEventMessages = new Set();
+    const observer = new MutationObserver((mutations, obs) => {
+      const conversations = document.querySelectorAll('a[href^="/c"]');
+      conversations.forEach((element) => {
+        const href = element.getAttribute('href');
+        if (href && !addedEventConversations.has(href)) {
+          addedEventConversations.add(href);
+          element.addEventListener('mouseenter', () => {
+            const reactRootEl = document.createElement('div');
+            reactRootEl.setAttribute('id', 'deleteBtnRoot');
+            element.appendChild(reactRootEl);
+            const reactRoot = createRoot(reactRootEl);
+            reactRoot.render(<DeleteButton href={href} element={element} />);
+          });
+          element.addEventListener('mouseleave', () => {
+            document.getElementById('deleteBtnRoot')?.remove();
+          });
+        }
+      });
+
+      const messages = document.querySelectorAll(
+        'article div[data-message-author-role="assistant"]'
+      );
+      messages.forEach((message) => {
+        const messageId = message.getAttribute('data-message-id');
+        if (messageId && !addedEventMessages.has(messageId)) {
+          addedEventMessages.add(messageId);
+          const article = message.closest('article');
+          if (!article?.querySelector('#downloadVoiceBtnRoot')) {
+            article?.addEventListener('mouseenter', () => {
+              const toolbar =
+                message.parentElement?.nextElementSibling?.childNodes[0]
+              if (toolbar) {
+                if (document.querySelector('#downloadVoiceBtnRoot') === null) {
+                  const reactRootEl = document.createElement('div');
+                  reactRootEl.setAttribute('id', 'downloadVoiceBtnRoot');
+                  toolbar.appendChild(reactRootEl);
+                  const reactRoot = createRoot(reactRootEl);
+                  reactRoot.render(
+                    <DownloadVoiceButton messageId={messageId} />
+                  );
+                }
+              }
+            });
+            article?.addEventListener('mouseleave', () => {
+              document.querySelectorAll('#downloadVoiceBtnRoot').forEach(it => it.remove())
+            });
+          }
+        }
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+  },
+});
